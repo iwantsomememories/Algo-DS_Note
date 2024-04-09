@@ -232,3 +232,79 @@ public static byte[] decode(Map<Byte, String> huffmanCodes, byte[] huffmanBytes)
     return res;
 }
 ```
+
+**文件压缩**
+
+代码示例：
+
+```java
+/**
+ * 压缩文件
+ * @param srcFile 压缩文件的全路径
+ * @param dstFile 压缩后的压缩文件存放目录
+ */
+public static void zipFile(String srcFile, String dstFile) {
+    //创建输入流
+    FileInputStream fis = null;
+    FileOutputStream fos = null;
+    ObjectOutputStream oos = null;
+    try {
+        fis = new FileInputStream(srcFile);
+        fos = new FileOutputStream(dstFile);
+        oos = new ObjectOutputStream(fos);
+        byte[] b = new byte[fis.available()];
+        fis.read(b);
+        var bytes = huffmanZip(b); //得到压缩文件
+        oos.writeObject(bytes); //以序列化流的方式将字节数组写入本地文件
+        oos.writeObject(huffmanCodes); //将哈夫曼编码表也写入本地文件
+    } catch (FileNotFoundException e) {
+        System.out.println(e.getMessage());
+    } catch (IOException e) {
+        System.out.println(e.getMessage());
+    } finally {
+        try {
+            fis.close();
+            oos.close();
+        }catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+```
+
+**文件解压**
+
+代码示例：
+
+```java
+/**
+ * 解压文件
+ * @param zipFile 压缩文件
+ * @param dstFile 解压到哪个路径
+ */
+public static void unzipFile(String zipFile, String dstFile) {
+    FileInputStream fis;
+    ObjectInputStream ois = null;
+    FileOutputStream fos = null;
+    try {
+        fis = new FileInputStream(zipFile);
+        ois = new ObjectInputStream(fis);
+        byte[] huffmanBytes = (byte[]) ois.readObject();
+        Map<Byte, String> huffmancodes;
+        huffmancodes = (Map<Byte, String>)ois.readObject();
+        System.out.println(1);
+        byte[] decoded = decode(huffmancodes, huffmanBytes);
+        fos = new FileOutputStream(dstFile);
+        fos.write(decoded);
+        System.out.println(2);
+    } catch (Exception e){
+        System.out.println(e.getMessage());
+    } finally {
+        try {
+            ois.close();
+            fos.close();
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+}
+```
